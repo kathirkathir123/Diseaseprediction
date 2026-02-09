@@ -1,16 +1,4 @@
-# app.py
-# ----------------------------------------------------------
-# Disease Prediction Web App (Streamlit)
-# - Trains model if not found
-# - Interactive symptom-based prediction
-# - Camera input
-# - Charts & history
-# - PDF & CSV export
-# ----------------------------------------------------------
-# Run:
-#   pip install streamlit pandas numpy scikit-learn joblib reportlab
-#   streamlit run app.py
-# ----------------------------------------------------------
+
 
 import streamlit as st
 import pandas as pd
@@ -28,9 +16,9 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 
 
-# ----------------------------------------------------------
-# 🧠 Step 1: Train model if not already available
-# ----------------------------------------------------------
+
+#  Train model 
+
 MODEL_FILE = "disease_model.joblib"
 ENCODER_FILE = "label_encoder.joblib"
 DATA_FILE = "Training.csv"
@@ -46,7 +34,7 @@ def train_or_load_model():
 
     st.warning("Model not found — training new model from Training.csv...")
 
-    # ✅ Load Dataset
+    # Load Dataset
     df = pd.read_csv(DATA_FILE)
     df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
     df = df.fillna(0)
@@ -62,31 +50,29 @@ def train_or_load_model():
     model.fit(X_train, y_train)
 
     acc = accuracy_score(y_test, model.predict(X_test))
-    st.info(f"✅ Model trained successfully! Accuracy: {acc * 100:.2f}%")
+    st.info(f" Model trained successfully! Accuracy: {acc * 100:.2f}%")
 
     joblib.dump(model, MODEL_FILE)
     joblib.dump(le, ENCODER_FILE)
 
     return model, le, df
 
-# ----------------------------------------------------------
-# 🎯 Step 2: Load model, encoder, and symptom columns
-# ----------------------------------------------------------
+
+# Load model, encoder, and symptom columns
+
 st.set_page_config(page_title="Disease Predictor", layout="wide")
-st.title("🩺 Disease Prediction from Symptoms")
+st.title(" Disease Prediction from Symptoms")
 
 model, label_encoder, df = train_or_load_model()
 symptom_cols = df.columns[:-1].tolist()
 
-# ----------------------------------------------------------
-# 🧾 Step 3: Session history setup
-# ----------------------------------------------------------
+
+#  Session history setup
+
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# ----------------------------------------------------------
-# 🧍 Step 4: User Interface
-# ----------------------------------------------------------
+#  User Interface
 left, right = st.columns([1, 1])
 
 with left:
@@ -103,7 +89,7 @@ with left:
     st.markdown("**Optional:** Capture a photo (visible symptom).")
     photo_bytes = st.camera_input("Capture Photo")
 
-    if st.button("🔍 Predict Disease"):
+    if st.button(" Predict Disease"):
         if text_input:
             tokens = [t.strip().lower() for t in text_input.split(",") if t.strip()]
             matched = []
@@ -163,11 +149,9 @@ with right:
     Predictions are based on binary symptom vectors.
     """)
 
-# ----------------------------------------------------------
-# 📊 Step 5: History & Charts
-# ----------------------------------------------------------
+# History & Charts
 st.markdown("---")
-st.header("📈 Prediction History & Reports")
+st.header(" Prediction History & Reports")
 
 history_df = pd.DataFrame(st.session_state.history)
 
@@ -179,7 +163,7 @@ with col1:
         df_show = history_df.drop(columns=["photo"], errors="ignore")
         st.dataframe(df_show.sort_values("timestamp", ascending=False))
         csv_data = df_show.to_csv(index=False).encode("utf-8")
-        st.download_button("⬇️ Download CSV", csv_data, "prediction_history.csv", "text/csv")
+        st.download_button(" Download CSV", csv_data, "prediction_history.csv", "text/csv")
     else:
         st.info("No predictions yet.")
 
@@ -196,9 +180,8 @@ with col2:
     else:
         st.info("Charts will appear after predictions.")
 
-# ----------------------------------------------------------
-# 📄 Step 6: PDF Report
-# ----------------------------------------------------------
+
+# PDF Report
 st.markdown("---")
 st.subheader("Generate PDF Report")
 
@@ -236,16 +219,17 @@ def generate_pdf_bytes(entries, include_photos=False):
     return buffer.getvalue()
 
 include_photos = st.checkbox("Include photos in PDF", value=False)
-if st.button("📄 Generate PDF"):
+if st.button(" Generate PDF"):
     if history_df.empty:
         st.warning("No predictions to include in report.")
     else:
         pdf_bytes = generate_pdf_bytes(st.session_state.history[::-1], include_photos)
         st.download_button(
-            "⬇️ Download PDF Report",
+            "Download PDF Report",
             data=pdf_bytes,
             file_name=f"disease_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
             mime="application/pdf"
         )
 
-st.caption("⚠️ Photos and data are stored only in this session — not saved permanently.")
+st.caption(" Photos and data are stored only in this session — not saved permanently.")
+
